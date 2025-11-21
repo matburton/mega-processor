@@ -1,0 +1,9 @@
+packages
+bin
+obj
+.vs
+.idea
+_ReSharper.Caches
+*.user
+*.orig
+**/Properties/launchSettings.json

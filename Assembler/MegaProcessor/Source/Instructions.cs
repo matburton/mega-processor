@@ -1,11 +1,5 @@
 
-using System.Runtime.CompilerServices;
-
 namespace Assembler.MegaProcessor;
-
-using Core;
-using Core.Exceptions;
-using Core.Fragments;
 
 using Exceptions;
 
@@ -542,6 +536,7 @@ public static class Instructions
         public Assembly SetWordValue
             (Register register,
              Calculation calculation,
+             bool force = false,
              [CallerArgumentExpression(nameof(calculation))]
                 string calculationProse = MissingProse)
         {
@@ -556,8 +551,9 @@ public static class Instructions
                     throw new InvalidReferenceException
                         ($"'{calculationProse}' value not within 16-bit range"),
 
-                >= 0 and <= byte.MaxValue => throw new InvalidReferenceException
-                    ($"'{calculationProse}' can be a byte rather than a word"),
+                >= 0 and <= byte.MaxValue when !force =>
+                    throw new InvalidReferenceException
+                        ($"'{calculationProse}' can be a byte rather than a word"),
 
                 var v => v
             }));

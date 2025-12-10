@@ -1,9 +1,5 @@
 
-using System.Text;
-
 namespace Assembler.MegaProcessor.Output;
-
-using Core.Output;
 
 public static class Listing
 {

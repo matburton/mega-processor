@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <Using Include="Assembler.MegaProcessor.Output" />
+        <Using Include="NUnit.Framework" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="../../Source/Assembler.MegaChess.csproj" />
+    </ItemGroup>
+</Project>

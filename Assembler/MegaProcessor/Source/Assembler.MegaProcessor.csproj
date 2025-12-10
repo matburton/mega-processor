@@ -3,6 +3,13 @@
         <ProjectReference Include="../../Core/Source/Assembler.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <Using Include="System.Text" />
+        <Using Include="Assembler.Core" />
+        <Using Include="Assembler.Core.Exceptions" />
+        <Using Include="Assembler.Core.Fragments" />
+        <Using Include="Assembler.Core.References" />
+        <Using Include="Assembler.Core.Output" />
         <Using Include="System.Diagnostics.Contracts" />
+        <Using Include="System.Runtime.CompilerServices" />
     </ItemGroup>
 </Project>

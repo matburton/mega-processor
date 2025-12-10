@@ -1,6 +1,4 @@
 
-using System.Text;
-
 namespace Assembler.Core;
 
 public static class Caller

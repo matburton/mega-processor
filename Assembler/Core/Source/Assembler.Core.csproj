@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <ItemGroup>
+        <Using Include="System.Text" />
         <Using Include="System.Diagnostics.Contracts" />
+        <Using Include="System.Runtime.CompilerServices" />
     </ItemGroup>
 </Project>

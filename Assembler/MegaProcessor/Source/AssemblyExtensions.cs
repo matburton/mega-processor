@@ -1,12 +1,5 @@
 
-using System.Runtime.CompilerServices;
-
-using Assembler.Core.Fragments;
-
 namespace Assembler.MegaProcessor;
-
-using Core;
-using Core.References;
 
 public static class AssemblyExtensions
 {
@@ -63,9 +56,36 @@ public static class AssemblyExtensions
 
         [Pure]
         public Assembly DefineGlobals
+            (out Reference reference,
+             object offsets,
+             int? totalBytes,
+             byte fillByte = 0xC | 0b1010, // nop
+             [CallerArgumentExpression(nameof(reference))]
+               string? referenceProse = null,
+             [CallerArgumentExpression(nameof(offsets))]
+               string? offsetsProse = null)
+        {
+            reference = new ();
+
+            if (referenceProse?.StartsWith("var ") is true)
+            {
+                referenceProse = referenceProse[4 ..];
+            }
+
+            return assembly.DefineGlobals(reference,
+                                          offsets,
+                                          totalBytes,
+                                          fillByte,
+                                          referenceProse,
+                                          offsetsProse);
+        }
+
+        [Pure]
+        public Assembly DefineGlobals
             (Reference reference,
              object offsets,
              int? totalBytes,
+             byte fillByte = 0xC | 0b1010, // nop
              [CallerArgumentExpression(nameof(reference))]
                string? referenceProse = null,
              [CallerArgumentExpression(nameof(offsets))]
@@ -90,9 +110,8 @@ public static class AssemblyExtensions
                     var nextAddress = index == offsetAddresses.Length - 1
                                     ? assembly.TotalBytes + totalBytes.Value
                                     : offsetAddresses[index + 1].Key;
-
-                    var bytes = Enumerable.Repeat<byte>
-                        (0xC | 0b101, nextAddress - address);
+                    var bytes =
+                        Enumerable.Repeat(fillByte, nextAddress - address);
 
                     lines.Add(new ([new BytesFragment(bytes)], path));
                 }

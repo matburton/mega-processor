@@ -1,6 +1,4 @@
 
-using Assembler.Core.References;
-
 namespace Assembler.MegaProcessor;
 
 public static class ReferenceExtensions

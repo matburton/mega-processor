@@ -1,6 +1,4 @@
 
-using Assembler.Core.Output;
-
 namespace Assembler.MegaProcessor.Output;
 
 public static class IntelHex

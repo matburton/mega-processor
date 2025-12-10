@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+    <ItemGroup>
+        <Using Include="Assembler.Core" />
+        <Using Include="Assembler.Core.References" />
+        <Using Include="Assembler.MegaProcessor" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="../../MegaProcessor/Source/Assembler.MegaProcessor.csproj" />
+    </ItemGroup>
+</Project>

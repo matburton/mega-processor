@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <Using Include="System.Diagnostics.Contracts" />
+    </ItemGroup>
+</Project>

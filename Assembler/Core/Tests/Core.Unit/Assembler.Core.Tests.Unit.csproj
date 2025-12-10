@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <ProjectReference Include="../../Source/Assembler.Core.csproj" />
+    </ItemGroup>
+</Project>

@@ -3,7 +3,6 @@ namespace Assembler.MegaChess;
 
 using static Constants;
 using static Register;
-using static Structures;
 
 internal static class Main
 {
@@ -15,7 +14,7 @@ internal static class Main
         .Append(Draw.Piece.Build)
         .DeclareReference(out var drawBoard)
         .Append(Draw.Board.Build(drawBoard))
-        .DefineGlobals(out var globals, Vars, VarsTotalBytes, fillByte: 0)
+        .DefineGlobals(out var globals, Vars, fillByte: 0)
         .NoOp(cycles: 3)
         .DefineReference(start)
         .SetWordValue(R0, 0x8000)
@@ -43,4 +42,9 @@ internal static class Main
         // TODO
         .GoTo(loop, forceAbsolute: true)
         ;
+
+    private sealed record Globals(int Cursor, int Selected);
+
+    private static readonly Globals Vars =
+        Variables.ByteSizesToOffsets(new Globals(1, 1));
 }

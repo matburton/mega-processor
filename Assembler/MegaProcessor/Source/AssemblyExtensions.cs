@@ -60,8 +60,7 @@ public static class AssemblyExtensions
         public Assembly DefineGlobals
             (out Reference reference,
              object offsets,
-             int? totalBytes,
-             byte fillByte = 0xC | 0b1010, // nop
+             byte? fillByte = 0xC | 0b1010, // nop
              [CallerArgumentExpression(nameof(reference))]
                string? referenceProse = null,
              [CallerArgumentExpression(nameof(offsets))]
@@ -71,7 +70,6 @@ public static class AssemblyExtensions
 
             return assembly.DefineGlobals(reference,
                                           offsets,
-                                          totalBytes,
                                           fillByte,
                                           referenceProse,
                                           offsetsProse);
@@ -81,8 +79,7 @@ public static class AssemblyExtensions
         public Assembly DefineGlobals
             (Reference reference,
              object offsets,
-             int? totalBytes,
-             byte fillByte = 0xC | 0b1010, // nop
+             byte? fillByte = 0xC | 0b1010, // nop
              [CallerArgumentExpression(nameof(reference))]
                string? referenceProse = null,
              [CallerArgumentExpression(nameof(offsets))]
@@ -98,17 +95,17 @@ public static class AssemblyExtensions
             {
                 var (address, path) = offsetAddresses[index];
 
-                if (totalBytes is null)
+                if (fillByte is null)
                 {
                     lines.Add(new ([], $"{address:X4}: {path}"));
                 }
                 else
                 {
                     var nextAddress = index == offsetAddresses.Length - 1
-                                    ? assembly.TotalBytes + totalBytes.Value
+                                    ? assembly.TotalBytes + offsets.TotalBytes
                                     : offsetAddresses[index + 1].Key;
                     var bytes =
-                        Enumerable.Repeat(fillByte, nextAddress - address);
+                        Enumerable.Repeat(fillByte.Value, nextAddress - address);
 
                     lines.Add(new ([new BytesFragment(bytes)], path));
                 }

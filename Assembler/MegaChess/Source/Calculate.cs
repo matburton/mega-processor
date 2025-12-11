@@ -3,7 +3,45 @@ namespace Assembler.MegaChess;
 internal static class Calculate
 {
     public static Func<Assembly, Assembly> Build(Reference calculateReset) => a => a
-        .DefineReference(calculateReset); // TODO
+        .AddBytes(out var pieceGameValues,
+                 [Piece.GameValue.Empty,
+                  Piece.GameValue.Pawn,
+                  Piece.GameValue.King,
+                  Piece.GameValue.Knight,
+                  Piece.GameValue.Bishop,
+                  Piece.GameValue.Rook,
+                  Piece.GameValue.Queen])
+        .AddWords(out var rookMoveDirections, [-1, 1, -10, 10])
+        .AddWords(out var bishopMoveDirections, [-11, -9, 9, 11])
+        .AddWords(out var blackPawnMoveDirections, [9, 11, 10, 20])
+        .AddWords(out var whitePawnMoveDirections, [-11, -9, -10, -20])
+        .AddWords(out var knightMoveDirections,
+                      [-21, -19, -12, -8, 8, 12, 19, 21])
+        .AddWords(out var initialMoveDirections,
+                      [0,
+                       blackPawnMoveDirections,
+                       rookMoveDirections,
+                       knightMoveDirections,
+                       bishopMoveDirections,
+                       rookMoveDirections,
+                       rookMoveDirections,
+                       0,
+                       0,
+                       whitePawnMoveDirections,
+                       rookMoveDirections,
+                       knightMoveDirections,
+                       bishopMoveDirections,
+                       rookMoveDirections,
+                       rookMoveDirections])
+        .AddBytes(out var boardState, Enumerable.Repeat<byte>(0, 10 * 12))
+        // TODO
+        .DefineReference(calculateReset)
+        ;
+
+    private sealed record Globals(int NewEnPassantPawnIndex,
+                                  int ClickedBoardIndex,
+                                  int ReturnValue,
+                                  int RandomValue);
 
     private static class Bools
     {
@@ -46,6 +84,31 @@ internal static class Calculate
                               Rook   = 68,
                               Queen  = 124,
                               QueenPawnDiff = Queen - Pawn;
+        }
+    }
+
+    public static class Unmoved
+    {
+        public static class Black
+        {
+            public const int
+                Pawn   = Piece.Unmoved + Piece.Colour.Black + Piece.Enum.Pawn,
+                King   = Piece.Unmoved + Piece.Colour.Black + Piece.Enum.King,
+                Knight = Piece.Unmoved + Piece.Colour.Black + Piece.Enum.Knight,
+                Bishop = Piece.Unmoved + Piece.Colour.Black + Piece.Enum.Bishop,
+                Rook   = Piece.Unmoved + Piece.Colour.Black + Piece.Enum.Rook,
+                Queen  = Piece.Unmoved + Piece.Colour.Black + Piece.Enum.Queen;
+        }
+
+        public static class White
+        {
+            public const int
+                Pawn   = Piece.Unmoved + Piece.Colour.White + Piece.Enum.Pawn,
+                King   = Piece.Unmoved + Piece.Colour.White + Piece.Enum.King,
+                Knight = Piece.Unmoved + Piece.Colour.White + Piece.Enum.Knight,
+                Bishop = Piece.Unmoved + Piece.Colour.White + Piece.Enum.Bishop,
+                Rook   = Piece.Unmoved + Piece.Colour.White + Piece.Enum.Rook,
+                Queen  = Piece.Unmoved + Piece.Colour.White + Piece.Enum.Queen;
         }
     }
 }

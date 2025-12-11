@@ -1,4 +1,6 @@
 
+using Assembler.MegaProcessor.Exceptions;
+
 namespace Assembler.MegaProcessor;
 
 public static class AssemblyExtensions
@@ -67,11 +69,6 @@ public static class AssemblyExtensions
         {
             reference = new ();
 
-            if (referenceProse?.StartsWith("var ") is true)
-            {
-                referenceProse = referenceProse[4 ..];
-            }
-
             return assembly.DefineGlobals(reference,
                                           offsets,
                                           totalBytes,
@@ -119,6 +116,51 @@ public static class AssemblyExtensions
 
             return assembly.DefineReference(reference, referenceProse)
                            .AddLines(lines);
+        }
+
+        [Pure]
+        public Assembly AddWords(IEnumerable<Calculation> words)
+        {
+            var fragments = words.Select(c => new ReferenceFragment(2, r =>
+            {
+                var value = c.Calculate(r);
+
+                if (value is < short.MinValue or > ushort.MaxValue)
+                {
+                    throw new InvalidInstructionException
+                        ($"Data value {value} is not within 16-bit range");
+                }
+
+                var bytes = BitConverter.GetBytes(value);
+
+                if (!BitConverter.IsLittleEndian) Array.Reverse(bytes);
+
+                return bytes[.. 2];
+            }));
+
+            return assembly.AddLines([new (fragments)]);
+        }
+
+        [Pure]
+        public Assembly AddWords(Reference reference,
+                                 IEnumerable<Calculation> words,
+                                 [CallerArgumentExpression(nameof(reference))]
+                                    string? referenceProse = null)
+        {
+            return assembly.DefineReference(reference, referenceProse)
+                           .AddWords(words);
+        }
+
+        [Pure]
+        public Assembly AddWords(out Reference reference,
+                                 IEnumerable<Calculation> words,
+                                 [CallerArgumentExpression(nameof(reference))]
+                                     string? referenceProse = null)
+        {
+            reference = new ();
+
+            return assembly.DefineReference(reference, referenceProse)
+                           .AddWords(words);
         }
     }
 }

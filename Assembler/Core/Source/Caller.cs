@@ -11,6 +11,11 @@ public static class Caller
     {
         if (appendProse?.Contains('\n') is true) appendProse = null;
 
+        if (referenceProse?.StartsWith("var ") is true)
+        {
+            referenceProse = referenceProse[4 ..];
+        }
+
         var stringBuilder = new StringBuilder();
 
         Append(referenceProse);

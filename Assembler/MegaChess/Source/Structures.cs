@@ -8,7 +8,7 @@ internal static class Structures
     static Structures() => (Vars, VarsTotalBytes) =
         Variables.ByteSizesToOffsets(new Globals(Cursor: 1, Selected: 1));
 
-    public static readonly Globals Vars;
+    public static readonly Globals Vars; // TODO: Use generic inheritance to avoid this?
 
     public static readonly int VarsTotalBytes;
 }

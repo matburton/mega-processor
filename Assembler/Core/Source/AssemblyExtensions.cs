@@ -62,8 +62,29 @@ public static class AssemblyExtensions
                 (lines.OfType<string>().Select(s => new Line([], s)));
 
         [Pure]
-        public Assembly AddData(IEnumerable<byte> bytes) =>
+        public Assembly AddBytes(IEnumerable<byte> bytes) =>
             assembly.AddLines([new ([new BytesFragment(bytes)])]);
+
+        [Pure]
+        public Assembly AddBytes(Reference reference,
+                                 IEnumerable<byte> bytes,
+                                 [CallerArgumentExpression(nameof(reference))]
+                                    string? referenceProse = null)
+        {
+            return assembly.DefineReference(reference, referenceProse)
+                           .AddBytes(bytes);
+        }
+
+        [Pure]
+        public Assembly AddBytes(out Reference reference,
+                                 IEnumerable<byte> bytes,
+                                 [CallerArgumentExpression(nameof(reference))]
+                                    string? referenceProse = null)
+        {
+            reference = new ();
+
+            return assembly.AddBytes(reference, bytes, referenceProse);
+        }
 
         [Pure]
         public Assembly Append

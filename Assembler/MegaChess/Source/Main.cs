@@ -16,19 +16,19 @@ internal static class Main
         .Append(Draw.Board.Build(drawBoard))
         .DefineGlobals(out var globals, Vars, fillByte: 0)
         .NoOp(cycles: 3)
-        .DefineReference(start)
-        .SetWordValue(R0, 0x8000)
-        .StackFromR0()
-        .CallRoutine(calculateReset)
-        .SetByteValue(R1, SquareIndex.E1)
-        .CopyByteTo(globals + Vars.Cursor, R1)
-        .CopyByteTo(globals + Vars.Selected, R1)
         .DeclareReference(out var returnFromDrawBoard)
-        .SetWordValue(R0, returnFromDrawBoard, force: true)
-        .GoTo(drawBoard, forceAbsolute: true)
-        .DefineReference(returnFromDrawBoard)
-        .NoOp()
-        .Loop(InfiniteLoop)
+        .DefineReference(start, a => a
+            .SetWordValue(R0, 0x8000)
+            .StackFromR0()
+            .CallRoutine(calculateReset)
+            .SetByteValue(R1, SquareIndex.E1)
+            .CopyByteTo(globals + Vars.Cursor, R1)
+            .CopyByteTo(globals + Vars.Selected, R1)
+            .SetWordValue(R0, returnFromDrawBoard, force: true)
+            .GoTo(drawBoard, forceAbsolute: true))
+        .DefineReference(returnFromDrawBoard, a => a
+            .NoOp()
+            .Loop(InfiniteLoop))
         ;
 
     private static Func<Assembly, Assembly> Preamble(Reference start) => a => a

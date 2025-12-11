@@ -512,6 +512,7 @@ public static class Instructions
         public Assembly SetByteValue
             (Register register,
              Calculation calculation,
+             bool force = false,
              [CallerArgumentExpression(nameof(calculation))]
                 string calculationProse = MissingProse)
         {
@@ -522,8 +523,13 @@ public static class Instructions
                  calculationProse,
                  new (r => calculation.Calculate(r) switch
             {
+                0 when !force =>
+                    throw new InvalidReferenceException
+                        ($"'{calculationProse}' is 0, so use {nameof(Clear)}"),
+
                 < 0 or > byte.MaxValue => throw new InvalidReferenceException
                     ($"'{calculationProse}' value not within 8-bit range"),
+
                 var v => v
             }));
         }

@@ -5,7 +5,7 @@ internal sealed class MainTests
 {
     [Test]
     public void Builds_expected_output() =>
-        Assert.That(Main.Build().Assemble().ToIntelHex(),
+        Assert.That(new Main().Build().Assemble().ToIntelHex(),
                     Is.EqualTo(ExpectedIntelHex.Split(Environment.NewLine)));
 
     private const string ExpectedIntelHex =

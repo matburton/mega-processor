@@ -4,35 +4,31 @@ namespace Assembler.MegaChess;
 using static Constants;
 using static Register;
 
-internal static class Main
+internal sealed class Main
 {
-    public static Assembly Build() => new Assembly()
-        .DeclareReference(out var start)
-        .Append(Preamble(start))
-        .DeclareReference(out var calculateReset)
-        .Append(Calculate.Build(calculateReset))
-        .Append(Draw.Piece.Build)
-        .DeclareReference(out var drawBoard)
-        .Append(Draw.Board.Build(drawBoard))
+    public Assembly Build() => new Assembly()
+        .Append(Preamble)
+        .Append(m_Calculate.Build)
+        .Append(m_DrawPiece.Build)
+        .Append(m_DrawBoard.Build)
         .DefineGlobals(out var globals, Vars, fillByte: 0)
         .NoOp(cycles: 3)
         .DeclareReference(out var returnFromDrawBoard)
-        .DefineReference(start, a => a
+        .DefineReference(m_Start, a => a
             .SetWordValue(R0, 0x8000)
             .StackFromR0()
-            .CallRoutine(calculateReset)
+            .CallRoutine(m_Calculate.Refs.CalculateReset)
             .SetByteValue(R1, SquareIndex.E1)
             .CopyByteTo(globals + Vars.Cursor, R1)
             .CopyByteTo(globals + Vars.Selected, R1)
             .SetWordValue(R0, returnFromDrawBoard, force: true)
-            .GoTo(drawBoard, forceAbsolute: true))
+            .GoTo(m_DrawBoard.Refs.Draw, forceAbsolute: true))
         .DefineReference(returnFromDrawBoard, a => a
             .NoOp()
-            .Loop(InfiniteLoop))
-        ;
+            .Loop(InfiniteLoop));
 
-    private static Func<Assembly, Assembly> Preamble(Reference start) => a => a
-        .GoTo(start, forceAbsolute: true)
+    private Assembly Preamble(Assembly a) => a
+        .GoTo(m_Start, forceAbsolute: true)
         .NoOp()
         .Repeat(3, (_, a) => a.ReturnFromInterrupt()
                               .NoOp(cycles: 3));
@@ -45,6 +41,14 @@ internal static class Main
 
     private sealed record Globals(int Cursor, int Selected);
 
-    private static readonly Globals Vars =
-        Variables.ByteSizesToOffsets(new Globals(1, 1));
+    private readonly Globals Vars =
+        Variables.ByteSizesToOffsets(new Globals(Cursor: 1, Selected: 1));
+
+    private readonly Reference m_Start = new ();
+
+    private readonly Calculate m_Calculate = new ();
+
+    private readonly Draw.Board m_DrawBoard = new ();
+
+    private readonly Draw.Piece m_DrawPiece = new ();
 }

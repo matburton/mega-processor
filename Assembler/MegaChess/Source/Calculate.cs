@@ -3,9 +3,16 @@ namespace Assembler.MegaChess;
 
 using static Register;
 
-internal static class Calculate
+internal sealed class Calculate
 {
-    public static Func<Assembly, Assembly> Build(Reference calculateReset) => a => a
+    public sealed class References
+    {
+        public Reference CalculateReset { get; } = new ();
+    };
+
+    public References Refs { get; } = new ();
+
+    public Assembly Build(Assembly a) => a
         .AddBytes(out var pieceGameValues,
                   [Piece.GameValue.Empty,
                    Piece.GameValue.Pawn,
@@ -36,66 +43,67 @@ internal static class Calculate
                    bishopMoveDirections,
                    rookMoveDirections,
                    rookMoveDirections])
-        .AddBytes(out var boardState, Enumerable.Repeat<byte>(0, 10 * 12))
-        .DefineGlobals(out var globals, Vars, fillByte: 0)
-        .DefineReference(calculateReset, a => a
-            .SetWordValue(R1, 0, force: true)
-            .CopyByteTo(globals + Vars.NewEnPassantPawnIndex, R1)
-            .CopyByteTo(globals + Vars.ClickedBoardIndex, R1)
-            .CopyWordTo(globals + Vars.ReturnValue, R1)
-            .CopyWordTo(globals + Vars.RandomValue, R1)
-            .SetWordValue(R2, boardState, force: true)
-            .SetByteValue(R1, Piece.Enum.OffBoard)
-            .Repeat(21, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
-            .Repeat(9, (i, a) =>
-            {
-                var values = new [] { Unmoved.Black.Rook,
-                                      Unmoved.Black.Knight,
-                                      Unmoved.Black.Bishop,
-                                      Unmoved.Black.Queen,
-                                      Unmoved.Black.King,
-                                      Unmoved.Black.Bishop,
-                                      Unmoved.Black.Knight,
-                                      Unmoved.Black.Rook,
-                                      Piece.Enum.OffBoard };
-
-                return a.SetByteValue(R1, values[i])
-                        .CopyByteToIndex(R2, R1, bumpIndex: true);
-            })
-            .CopyByteToIndex(R2, R1, bumpIndex: true)
-            .SetByteValue(R1, Unmoved.Black.Pawn)
-            .Repeat(8, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
-            .Repeat(4, (_, a) => a
-                .SetByteValue(R1, Piece.Enum.OffBoard)
-                .Repeat(2, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
-                .SetByteValue(R1, Piece.Enum.Empty, force: true)
-                .Repeat(8, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
-            )
-            .SetByteValue(R1, Piece.Enum.OffBoard)
-            .Repeat(2, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
-            .SetByteValue(R1, Unmoved.White.Pawn)
-            .Repeat(8, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
-            .SetByteValue(R1, Piece.Enum.OffBoard)
-            .Repeat(2, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
-            .Repeat(9, (i, a) =>
-            {
-                var values = new [] { Unmoved.White.Rook,
-                                      Unmoved.White.Knight,
-                                      Unmoved.White.Bishop,
-                                      Unmoved.White.Queen,
-                                      Unmoved.White.King,
-                                      Unmoved.White.Bishop,
-                                      Unmoved.White.Knight,
-                                      Unmoved.White.Rook,
-                                      Piece.Enum.OffBoard };
-
-                return a.SetByteValue(R1, values[i])
-                        .CopyByteToIndex(R2, R1, bumpIndex: true);
-            })
-            .Repeat(20, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
-            .ReturnFromRoutine())
+        .AddBytes(m_BoardState, Enumerable.Repeat<byte>(0, 10 * 12))
+        .DefineGlobals(m_Globals, m_Vars, fillByte: 0)
+        .Routine(Refs.CalculateReset, CalculateReset)
         // TODO
         ;
+
+    private Assembly CalculateReset(Assembly a) => a
+        .SetWordValue(R1, 0, force: true)
+        .CopyByteTo(m_Globals + m_Vars.NewEnPassantPawnIndex, R1)
+        .CopyByteTo(m_Globals + m_Vars.ClickedBoardIndex, R1)
+        .CopyWordTo(m_Globals + m_Vars.ReturnValue, R1)
+        .CopyWordTo(m_Globals + m_Vars.RandomValue, R1)
+        .SetWordValue(R2, m_BoardState, force: true)
+        .SetByteValue(R1, Piece.Enum.OffBoard)
+        .Repeat(21, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
+        .Repeat(9, (i, a) =>
+        {
+            var values = new [] { Unmoved.Black.Rook,
+                                  Unmoved.Black.Knight,
+                                  Unmoved.Black.Bishop,
+                                  Unmoved.Black.Queen,
+                                  Unmoved.Black.King,
+                                  Unmoved.Black.Bishop,
+                                  Unmoved.Black.Knight,
+                                  Unmoved.Black.Rook,
+                                  Piece.Enum.OffBoard };
+
+            return a.SetByteValue(R1, values[i])
+                    .CopyByteToIndex(R2, R1, bumpIndex: true);
+        })
+        .CopyByteToIndex(R2, R1, bumpIndex: true)
+        .SetByteValue(R1, Unmoved.Black.Pawn)
+        .Repeat(8, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
+        .Repeat(4, (_, a) => a
+            .SetByteValue(R1, Piece.Enum.OffBoard)
+            .Repeat(2, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
+            .SetByteValue(R1, Piece.Enum.Empty, force: true)
+            .Repeat(8, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
+        )
+        .SetByteValue(R1, Piece.Enum.OffBoard)
+        .Repeat(2, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
+        .SetByteValue(R1, Unmoved.White.Pawn)
+        .Repeat(8, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
+        .SetByteValue(R1, Piece.Enum.OffBoard)
+        .Repeat(2, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true))
+        .Repeat(9, (i, a) =>
+        {
+            var values = new [] { Unmoved.White.Rook,
+                                  Unmoved.White.Knight,
+                                  Unmoved.White.Bishop,
+                                  Unmoved.White.Queen,
+                                  Unmoved.White.King,
+                                  Unmoved.White.Bishop,
+                                  Unmoved.White.Knight,
+                                  Unmoved.White.Rook,
+                                  Piece.Enum.OffBoard };
+
+            return a.SetByteValue(R1, values[i])
+                    .CopyByteToIndex(R2, R1, bumpIndex: true);
+        })
+        .Repeat(20, (_, a) => a.CopyByteToIndex(R2, R1, bumpIndex: true));
 
     private static class Bools
     {
@@ -141,7 +149,7 @@ internal static class Calculate
         }
     }
 
-    public static class Unmoved
+    private static class Unmoved
     {
         public static class Black
         {
@@ -171,9 +179,12 @@ internal static class Calculate
                                   int ReturnValue,
                                   int RandomValue);
 
-    private static readonly Globals Vars =
+    private readonly Globals m_Vars =
         Variables.ByteSizesToOffsets(new Globals(NewEnPassantPawnIndex: 1,
                                                  ClickedBoardIndex: 1,
                                                  ReturnValue: 2,
                                                  RandomValue: 2));
+
+    private readonly Reference m_Globals = new (),
+                               m_BoardState = new ();
 }

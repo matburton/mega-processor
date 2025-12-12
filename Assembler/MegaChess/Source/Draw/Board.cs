@@ -1,10 +1,17 @@
 
 namespace Assembler.MegaChess.Draw;
 
-internal static class Board
+internal sealed class Board
 {
-    public static Func<Assembly, Assembly> Build(Reference draw) => a => a
-        .DefineReference(draw)
+    public sealed class References
+    {
+        public Reference Draw { get; } = new ();
+    };
+
+    public References Refs { get; } = new ();
+
+    public Assembly Build(Assembly a) => a
+        .DefineReference(Refs.Draw)
         // TODO
         ;
 }

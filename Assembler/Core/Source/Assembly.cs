@@ -60,7 +60,11 @@ public sealed class Assembly
     [Pure]
     public IEnumerable<OutputLine> Assemble()
     {
-        // TODO: Compact repeated lines, or sets of lines
+        // TODO: Compact repeated lines, or sets of lines. Buffer output for this?
+
+        // TODO: Throw if there were unused defined references
+
+        // TODO: When CalculateBytes fails give the current address and line comment?
 
         var currentAddress = 0;
 

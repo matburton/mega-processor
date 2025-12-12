@@ -1,4 +1,6 @@
 
+using System.Text.RegularExpressions;
+
 namespace Assembler.Core;
 
 public static class Caller
@@ -46,4 +48,20 @@ public static class Caller
             if (stringBuilder.Length is not 0) stringBuilder.Append(spacer);
         }
     }
+
+    public static string? LambdaFirstVariableName(string? appendProse)
+    {
+        if (appendProse is null) return null;
+
+        return LambdaFirstVariableNameRegex
+              .Match(appendProse)
+              .Groups
+              .Values
+              .Skip(1)
+              .FirstOrDefault()
+             ?.Value;
+    }
+
+    private static readonly Regex LambdaFirstVariableNameRegex =
+        new (@"\(\s*([^,\s]+)");
 }

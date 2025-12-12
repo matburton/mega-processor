@@ -1,4 +1,6 @@
 
+using System.Text.RegularExpressions;
+
 namespace Assembler.Core;
 
 using Fragments;
@@ -98,6 +100,26 @@ public static class AssemblyExtensions
                 (null, appendProse, filePath, lineNumber);
 
             return append(assembly.AddBlockComment([comment]));
+        }
+
+        [Pure]
+        public Assembly Append
+            (Func<Reference, Assembly, Assembly> append,
+             [CallerArgumentExpression(nameof(append))]
+                string? appendProse = null,
+             [CallerFilePath] string? filePath = null,
+             [CallerLineNumber] int lineNumber = -1)
+        {
+            var end = new Reference();
+
+            var comment = Caller.ToComment
+                (null, appendProse, filePath, lineNumber);
+
+            var referenceProse =
+                Caller.LambdaFirstVariableName(appendProse) ?? nameof(end);
+
+            return append(end, assembly.AddBlockComment([comment]))
+                  .DefineReference(end, referenceProse);
         }
 
         [Pure]

@@ -31,8 +31,6 @@ public static class Variables
 
         var offsets = (T)ByteSizesToOffsets(byteSizes, ref offset);
 
-        TotalBytes.Add(offsets, offset);
-
         return offsets;
     }
 
@@ -53,6 +51,8 @@ public static class Variables
 
     private static object ByteSizesToOffsets(object? byteSizes, ref int offset)
     {
+        var startingOffset = offset;
+
         if (byteSizes is null)
         {
             throw new ArgumentException("Value within was null",
@@ -107,6 +107,8 @@ public static class Variables
                                ByteSizesToOffsets(fieldValue, ref offset));
             }
         }
+
+        TotalBytes.Add(offsets, offset - startingOffset);
 
         return offsets;
     }

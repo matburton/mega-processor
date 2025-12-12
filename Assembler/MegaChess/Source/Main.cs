@@ -6,12 +6,20 @@ using static Register;
 
 internal sealed class Main
 {
+    public Main() => m_Calculate = new (m_Globals);
+
+    public sealed record Globals(int CursorSquareIndex = 1,
+                                 int SelectedSquareIndex = 1);
+
+    public static readonly Globals Vars =
+        Variables.ByteSizesToOffsets(new Globals());
+
     public Assembly Build() => new Assembly()
         .Append(Preamble)
         .Append(m_Calculate.Build)
         .Append(m_DrawPiece.Build)
         .Append(m_DrawBoard.Build)
-        .DefineGlobals(out var globals, Vars, fillByte: 0)
+        .DefineGlobals(m_Globals, Vars, fillByte: 0)
         .NoOp(cycles: 3)
         .DeclareReference(out var returnFromDrawBoard)
         .DefineReference(m_Start, a => a
@@ -19,8 +27,8 @@ internal sealed class Main
             .StackFromR0()
             .CallRoutine(m_Calculate.Refs.CalculateReset)
             .SetByteValue(R1, SquareIndex.E1)
-            .CopyByteTo(globals + Vars.Cursor, R1)
-            .CopyByteTo(globals + Vars.Selected, R1)
+            .CopyByteTo(m_Globals + Vars.CursorSquareIndex, R1)
+            .CopyByteTo(m_Globals + Vars.SelectedSquareIndex, R1)
             .SetWordValue(R0, returnFromDrawBoard, force: true)
             .GoTo(m_DrawBoard.Refs.Draw, forceAbsolute: true))
         .DefineReference(returnFromDrawBoard, a => a
@@ -39,14 +47,10 @@ internal sealed class Main
         .GoTo(loop, forceAbsolute: true)
         ;
 
-    private sealed record Globals(int Cursor, int Selected);
+    private readonly Reference m_Start = new (),
+                               m_Globals = new ();
 
-    private readonly Globals Vars =
-        Variables.ByteSizesToOffsets(new Globals(Cursor: 1, Selected: 1));
-
-    private readonly Reference m_Start = new ();
-
-    private readonly Calculate m_Calculate = new ();
+    private readonly Calculate m_Calculate;
 
     private readonly Draw.Board m_DrawBoard = new ();
 

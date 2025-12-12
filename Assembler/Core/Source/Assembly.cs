@@ -60,6 +60,8 @@ public sealed class Assembly
     [Pure]
     public IEnumerable<OutputLine> Assemble()
     {
+        // TODO: Compact repeated lines, or sets of lines
+
         var currentAddress = 0;
 
         OutputLine? lastOutputLine = null;

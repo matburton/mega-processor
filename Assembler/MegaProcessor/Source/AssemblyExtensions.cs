@@ -159,5 +159,38 @@ public static class AssemblyExtensions
             return assembly.DefineReference(reference, referenceProse)
                            .AddWords(words);
         }
+
+        /// <summary>Cycles:4. Bytes:3</summary>
+        ///
+        /// <remarks>Sets:[]</remarks>
+        ///
+        [Pure]
+        public Assembly GoTo
+            (out Reference reference,
+             bool forceAbsolute = false,
+             [CallerArgumentExpression(nameof(reference))]
+                string referenceProse = "???")
+        {
+            reference = new ();
+
+            return assembly.GoTo(reference, forceAbsolute, referenceProse);
+        }
+
+        /// <summary>Cycles:3 if <paramref name="condition"/> was met,
+        ///          otherwise 2. Bytes:2</summary>
+        ///
+        /// <remarks>Sets:[]</remarks>
+        ///
+        [Pure]
+        public Assembly GoToIf
+            (Condition condition,
+             out Reference reference,
+             [CallerArgumentExpression(nameof(reference))]
+                string referenceProse = "???")
+        {
+            reference = new ();
+
+            return assembly.GoToIf(condition, reference, referenceProse);
+        }
     }
 }

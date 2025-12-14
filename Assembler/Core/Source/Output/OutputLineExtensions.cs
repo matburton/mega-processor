@@ -97,13 +97,13 @@ public static class OutputLineExtensions
             var patternDetected = pattern.SequenceEqual
                 (outputLines[^(patternLength * 2) .. ^patternLength], comparer);
 
-            if (patternDetected && pattern.ToArray().All(l => l.Bytes != null))
+            if (patternDetected && pattern.ToArray().All(AllowedInPattern))
             {
                 return new ([..pattern]) { RepeatCount = 2 };
             }
         }
 
-        if (   outputLines[^1].Bytes is not null
+        if (   AllowedInPattern(outputLines[^1])
             && comparer.Equals(outputLines[^1], outputLines[^2])
             && comparer.Equals(outputLines[^1], outputLines[^3]))
         {
@@ -112,6 +112,9 @@ public static class OutputLineExtensions
 
         return null;
     }
+
+    private static bool AllowedInPattern(OutputLine outputLine) =>
+        outputLine is { Bytes: not null, Comment: not null };
 
     private static IEnumerable<OutputLine> ToCollapsedOutputLines
         (PatternBuffer? patternBuffer)

@@ -25,7 +25,7 @@ internal sealed class Main
         .DefineReference(m_Start, a => a
             .SetWordValue(R0, 0x8000)
             .StackFromR0()
-            .CallRoutine(m_Calculate.Refs.CalculateReset)
+            .CallRoutine(m_Calculate.Refs.Reset)
             .SetByteValue(R1, SquareIndex.E1)
             .CopyByteTo(m_Globals + Vars.CursorSquareIndex, R1)
             .CopyByteTo(m_Globals + Vars.SelectedSquareIndex, R1)

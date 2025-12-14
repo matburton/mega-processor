@@ -9,7 +9,7 @@ internal sealed class Calculate(Reference m_MainGlobals)
 {
     public sealed class References
     {
-        public Reference CalculateReset { get; } = new ();
+        public Reference Reset { get; } = new ();
     };
 
     public References Refs { get; } = new ();
@@ -29,7 +29,7 @@ internal sealed class Calculate(Reference m_MainGlobals)
         .AddWords(out var whitePawnMoveDirections, [-11, -9, -10, -20])
         .AddWords(out var knightMoveDirections,
                   [-21, -19, -12, -8, 8, 12, 19, 21])
-        .AddWords(out var initialMoveDirections,
+        .AddWords(m_InitialMoveDirectionIndexes,
                   [0,
                    blackPawnMoveDirections,
                    rookMoveDirections,
@@ -47,12 +47,12 @@ internal sealed class Calculate(Reference m_MainGlobals)
                    rookMoveDirections])
         .AddBytes(m_BoardState, Enumerable.Repeat<byte>(0, 10 * 12))
         .DefineGlobals(m_Globals, m_Vars, fillByte: 0)
-        .Routine(Refs.CalculateReset, CalculateReset)
+        .Routine(Refs.Reset, Reset)
         .Routine(m_Calculate, CalculateRoutine)
         // TODO
         ;
 
-    private Assembly CalculateReset(Assembly a) => a
+    private Assembly Reset(Assembly a) => a
         .SetWordValue(R1, 0, force: true)
         .CopyByteTo(m_Globals + m_Vars.NewEnPassantPawnIndex, R1)
         .CopyByteTo(m_Globals + m_Vars.ClickedBoardIndex, R1)
@@ -276,7 +276,43 @@ internal sealed class Calculate(Reference m_MainGlobals)
         .Append((originSquareValuePieceHasMoved, a) => a
             .GoToIf(C.Equal, originSquareValuePieceHasMoved)
             .SetByteValue(R3, Bools.True))
-        // TODO: Line 626
+        .CopyByteToStack(m_Stuff.Locals.OriginPieceIsOnOriginalSquare, R3)
+        .SetByteValue(R3, Bools.False, force: true)
+        .SetByteValue(R0, Piece.Enum.Pawn)
+        .Compare(R2, R0)
+        .Append((originSquareValueIsNotPawn, a) => a
+            .GoToIf(C.NotEqual, originSquareValueIsNotPawn)
+            .SetByteValue(R3, Bools.True))
+        .CopyByteToStack(m_Stuff.Locals.OriginPieceIsAPawn, R3)
+        .SetByteValue(R3, Bools.False, force: true)
+        .SetByteValue(R0, Piece.Enum.King)
+        .Compare(R2, R0)
+        .Append((originSquareValueIsNotKing, a) => a
+            .GoToIf(C.NotEqual, originSquareValueIsNotKing)
+            .SetByteValue(R3, Bools.True))
+        .CopyByteToStack(m_Stuff.Locals.OriginPieceIsAKing, R3)
+        .SetByteValue(R3, Bools.False, force: true)
+        .SetByteValue(R0, 4)
+        .Compare(R2, R0)
+        .Append((originSquareValueIsNotSlidey, a) => a
+            .GoToIf(C.Less, originSquareValueIsNotSlidey)
+            .SetByteValue(R3, Bools.True))
+        .CopyByteToStack(m_Stuff.Locals.OriginPieceIsSlidey, R3)
+        .SetByteValue(R3, 4)
+        .SetByteValue(R0, 0b0010)
+        .AndTo(R0, R2)
+        .Append((originSquareValueIsNot8Directional, a) => a
+            .GoToIf(C.Equal, originSquareValueIsNot8Directional)
+            .SetByteValue(R3, 8))
+        .CopyByteToStack(m_Stuff.Locals.MoveDirectionNumber, R3)
+        .AddTo(R1, R1)
+        .SetWordValue(R2, m_InitialMoveDirectionIndexes, force: true)
+        .AddTo(R2, R1)
+        .CopyWordFromIndex(R2, R0)
+        .CopyWordToStack(m_Stuff.Locals.MoveDirectionIndex, R0)
+        .CopyByteFromStack(m_Stuff.Locals.OriginSquareIndex, R0)
+        .CopyByteToStack(m_Stuff.Locals.TargetSquareIndex, R0)
+        // TODO: Line 669
         // TODO
         .DefineReference(handleOriginPieceBlockEnd)
         ;
@@ -434,5 +470,6 @@ internal sealed class Calculate(Reference m_MainGlobals)
     private readonly Reference m_Globals = new (),
                                m_BoardState = new (),
                                m_Calculate = new (),
-                               m_OriginPlayerIsInCheckNotModeIsZero = new ();
+                               m_OriginPlayerIsInCheckNotModeIsZero = new (),
+                               m_InitialMoveDirectionIndexes = new ();
 }

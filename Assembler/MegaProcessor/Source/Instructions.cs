@@ -258,7 +258,7 @@ public static class Instructions
             var comment = load switch
             {
                 true => $"ld.{size.Label} {register.Label}, (sp + {offsetProse})",
-                _    => $"st.{size.Label} (sp + {offsetProse}), {register.Label})"
+                _    => $"st.{size.Label} (sp + {offsetProse}), {register.Label}"
             };
 
             var op = 0xA0 | (load ? 0 : 0b1000) | size.Bits << 2 | register.Bits;

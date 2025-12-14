@@ -22,12 +22,7 @@ internal sealed class Board(Reference m_DrawPiece)
         .SetWordValue(R2, 0xA000)
         .SetWordValue(R0, 0b0000000000000000, force: true)
         .Repeat(16 * 6, (_, a) => a.CopyWordToIndex(R2, R0, bumpIndex: true))
-        .SetWordValue(R0, 0b0000000000000000, force: true)
-        .Repeat(2, (_, a) => a.CopyWordToIndex(R2, R0, bumpIndex: true))
-        .Repeat(m_UseXAndJoystick.Count, (index, a) => a
-            .SetWordValue(R0, m_UseXAndJoystick[index].Bitmap, force: true)
-            .Repeat(m_UseXAndJoystick[index].Repeats, (_, a) => a
-                .CopyWordToIndex(R2, R0, bumpIndex: true)))
+        .BlitBitmap(R2, R0, UseXAndJoystick)
         .SetByteValue(R0, 8)
         .CopyByteTo(m_Locals + m_Vars.LoopRankIndex, R0)
         .CopyByteTo(m_Locals + m_Vars.LoopFileIndex, R0)
@@ -53,36 +48,23 @@ internal sealed class Board(Reference m_DrawPiece)
         .CopyWordFrom(m_Locals + m_Vars.ReturnAddress, R0)
         .GoToR0();
 
-    // TODO: ASCII to bitmap
-    private readonly IReadOnlyList<(int Bitmap, int Repeats)>
-        m_UseXAndJoystick =
-    [
-        (0b0000000000000000,2),
-        (0b1111111111111111,2),
-        (0b0000000000000000,2),
-        (0b0001001101101010,1),
-        (0b0011010010111001,1),
-        (0b1010000100101010,1),
-        (0b0101010110101000,1),
-        (0b0100001101101010,1),
-        (0b0101011010111000,1),
-        (0b1010000101001010,1),
-        (0b0101010010101000,1),
-        (0b0001001101101110,1),
-        (0b0011010010101001,1),
-        (0b0000000000000000,4),
-        (0b0110101011101000,1),
-        (0b0000101011010111,1),
-        (0b0010010010101000,1),
-        (0b0000011001010010,1),
-        (0b0110010010101000,1),
-        (0b0000101001010010,1),
-        (0b0100010010101000,1),
-        (0b0000101001010010,1),
-        (0b0110010011101110,1),
-        (0b0000101011010010,1),
-        (0b0000000000000000,2)
-    ];
+    private static IEnumerable<string> UseXAndJoystick =>
+        ["                                ",
+         "████████████████████████████████",
+         "                                ",
+         " █ █ ██ ██  █   █  ███ █  █ ██  ",
+         " █ █ █  █    █ █   █ █ ██ █ █ █ ",
+         " █ █ ██ ██    █    ███ █ ██ █ █ ",
+         " █ █  █ █    █ █   █ █ █  █ █ █ ",
+         " ███ ██ ██  █   █  █ █ █  █ ██  ",
+         "                                ",
+         "                                ",
+         "   █ ███ █ █ ██ ███ █ ██ █ █    ",
+         "   █ █ █  █  █   █  █ █  ██     ",
+         "   █ █ █  █  ██  █  █ █  █ █    ",
+         "   █ █ █  █   █  █  █ █  █ █    ",
+         "  ██ ███  █  ██  █  █ ██ █ █    ",
+         "                                "];
 
     private sealed record Locals(int ReturnAddress = 2,
                                  int LoopRankIndex = 1,

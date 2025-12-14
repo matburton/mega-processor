@@ -1,5 +1,5 @@
 
-using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Assembler.Core;
 
@@ -12,6 +12,11 @@ public static class Caller
                                     string? type = null)
     {
         if (appendProse?.Contains('\n') is true) appendProse = null;
+
+        if (referenceProse?.StartsWith("var ") is true)
+        {
+            referenceProse = referenceProse[4 ..];
+        }
 
         var stringBuilder = new StringBuilder();
 
@@ -43,4 +48,20 @@ public static class Caller
             if (stringBuilder.Length is not 0) stringBuilder.Append(spacer);
         }
     }
+
+    public static string? LambdaFirstVariableName(string? appendProse)
+    {
+        if (appendProse is null) return null;
+
+        return LambdaFirstVariableNameRegex
+              .Match(appendProse)
+              .Groups
+              .Values
+              .Skip(1)
+              .FirstOrDefault()
+             ?.Value;
+    }
+
+    private static readonly Regex LambdaFirstVariableNameRegex =
+        new (@"\(\s*([^,\s]+)");
 }

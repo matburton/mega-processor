@@ -1,5 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-    <ItemGroup>
-        <ProjectReference Include="..\..\Source\Assembler.MegaProcessor.csproj" />
-    </ItemGroup>
-</Project>

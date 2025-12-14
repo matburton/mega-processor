@@ -1,12 +1,7 @@
 
-using System.Runtime.CompilerServices;
-
-using Assembler.Core.Fragments;
+using Assembler.MegaProcessor.Exceptions;
 
 namespace Assembler.MegaProcessor;
-
-using Core;
-using Core.References;
 
 public static class AssemblyExtensions
 {
@@ -63,9 +58,28 @@ public static class AssemblyExtensions
 
         [Pure]
         public Assembly DefineGlobals
+            (out Reference reference,
+             object offsets,
+             byte? fillByte = 0xC | 0b1010, // nop
+             [CallerArgumentExpression(nameof(reference))]
+               string? referenceProse = null,
+             [CallerArgumentExpression(nameof(offsets))]
+               string? offsetsProse = null)
+        {
+            reference = new ();
+
+            return assembly.DefineGlobals(reference,
+                                          offsets,
+                                          fillByte,
+                                          referenceProse,
+                                          offsetsProse);
+        }
+
+        [Pure]
+        public Assembly DefineGlobals
             (Reference reference,
              object offsets,
-             int? totalBytes,
+             byte? fillByte = 0xC | 0b1010, // nop
              [CallerArgumentExpression(nameof(reference))]
                string? referenceProse = null,
              [CallerArgumentExpression(nameof(offsets))]
@@ -81,18 +95,17 @@ public static class AssemblyExtensions
             {
                 var (address, path) = offsetAddresses[index];
 
-                if (totalBytes is null)
+                if (fillByte is null)
                 {
                     lines.Add(new ([], $"{address:X4}: {path}"));
                 }
                 else
                 {
                     var nextAddress = index == offsetAddresses.Length - 1
-                                    ? assembly.TotalBytes + totalBytes.Value
+                                    ? assembly.TotalBytes + offsets.TotalBytes
                                     : offsetAddresses[index + 1].Key;
-
-                    var bytes = Enumerable.Repeat<byte>
-                        (0xC | 0b101, nextAddress - address);
+                    var bytes =
+                        Enumerable.Repeat(fillByte.Value, nextAddress - address);
 
                     lines.Add(new ([new BytesFragment(bytes)], path));
                 }
@@ -100,6 +113,84 @@ public static class AssemblyExtensions
 
             return assembly.DefineReference(reference, referenceProse)
                            .AddLines(lines);
+        }
+
+        [Pure]
+        public Assembly AddWords(IEnumerable<Calculation> words)
+        {
+            var fragments = words.Select(c => new ReferenceFragment(2, r =>
+            {
+                var value = c.Calculate(r);
+
+                if (value is < short.MinValue or > ushort.MaxValue)
+                {
+                    throw new InvalidInstructionException
+                        ($"Data value {value} is not within 16-bit range");
+                }
+
+                var bytes = BitConverter.GetBytes(value);
+
+                if (!BitConverter.IsLittleEndian) Array.Reverse(bytes);
+
+                return bytes[.. 2];
+            }));
+
+            return assembly.AddLines([new (fragments)]);
+        }
+
+        [Pure]
+        public Assembly AddWords(Reference reference,
+                                 IEnumerable<Calculation> words,
+                                 [CallerArgumentExpression(nameof(reference))]
+                                    string? referenceProse = null)
+        {
+            return assembly.DefineReference(reference, referenceProse)
+                           .AddWords(words);
+        }
+
+        [Pure]
+        public Assembly AddWords(out Reference reference,
+                                 IEnumerable<Calculation> words,
+                                 [CallerArgumentExpression(nameof(reference))]
+                                     string? referenceProse = null)
+        {
+            reference = new ();
+
+            return assembly.DefineReference(reference, referenceProse)
+                           .AddWords(words);
+        }
+
+        /// <summary>Cycles:4. Bytes:3</summary>
+        ///
+        /// <remarks>Sets:[]</remarks>
+        ///
+        [Pure]
+        public Assembly GoTo
+            (out Reference reference,
+             bool forceAbsolute = false,
+             [CallerArgumentExpression(nameof(reference))]
+                string referenceProse = "???")
+        {
+            reference = new ();
+
+            return assembly.GoTo(reference, forceAbsolute, referenceProse);
+        }
+
+        /// <summary>Cycles:3 if <paramref name="condition"/> was met,
+        ///          otherwise 2. Bytes:2</summary>
+        ///
+        /// <remarks>Sets:[]</remarks>
+        ///
+        [Pure]
+        public Assembly GoToIf
+            (Condition condition,
+             out Reference reference,
+             [CallerArgumentExpression(nameof(reference))]
+                string referenceProse = "???")
+        {
+            reference = new ();
+
+            return assembly.GoToIf(condition, reference, referenceProse);
         }
     }
 }

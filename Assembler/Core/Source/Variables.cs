@@ -1,6 +1,5 @@
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace Assembler.Core;
 
@@ -8,28 +7,31 @@ using static BindingFlags;
 
 public static class Variables
 {
-    public static (T, int totalBytes) ByteSizesToOffsets<T>(T byteSizes)
-        where T : class
+    extension (object offsets)
+    {
+        public int TotalBytes =>
+            TotalBytes.TryGetValue(offsets, out var totalBytes)
+                ? totalBytes
+                : throw new Exception("Offsets instance not returned"
+                                      + $" from {nameof(Variables)} method");
+    }
+
+    public static T ByteSizesToOffsets<T>(T byteSizes)
+        where T : notnull
     {
         ArgumentNullException.ThrowIfNull(byteSizes);
+
+        if (typeof(T).IsPrimitive)
+        {
+            throw new ArgumentException("Cannot be a primitive type",
+                                        nameof(byteSizes));
+        }
 
         var offset = 0;
 
         var offsets = (T)ByteSizesToOffsets(byteSizes, ref offset);
 
-        return (offsets, offset);
-    }
-
-    public static (T[], int totalBytes) ByteSizesToOffsets<T>(T[] byteSizes)
-    {
-        ArgumentNullException.ThrowIfNull(byteSizes);
-
-        var offset = 0;
-
-        // ReSharper disable once CoVariantArrayConversion
-        var offsets = (T[])ByteSizesToOffsets(byteSizes, ref offset);
-
-        return (offsets, offset);
+        return offsets;
     }
 
     public static OrderedDictionary<int, string> OffsetAddresses
@@ -49,6 +51,8 @@ public static class Variables
 
     private static object ByteSizesToOffsets(object? byteSizes, ref int offset)
     {
+        var startingOffset = offset;
+
         if (byteSizes is null)
         {
             throw new ArgumentException("Value within was null",
@@ -104,6 +108,8 @@ public static class Variables
             }
         }
 
+        TotalBytes.Add(offsets, offset - startingOffset);
+
         return offsets;
     }
 
@@ -151,4 +157,7 @@ public static class Variables
             PopulateOffsetsToPaths(offsetsToPaths, value, $"{path}{name}");
         }
     }
+
+    private static readonly IDictionary<object, int> TotalBytes =
+        new Dictionary<object, int>(ReferenceEqualityComparer.Instance);
 }

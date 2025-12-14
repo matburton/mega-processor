@@ -1,7 +1,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace Assembler.Core;
 
@@ -61,6 +60,10 @@ public sealed class Assembly
     [Pure]
     public IEnumerable<OutputLine> Assemble()
     {
+        // TODO: Throw if there were unused defined references
+
+        // TODO: When CalculateBytes fails give the current address and line comment?
+
         var currentAddress = 0;
 
         OutputLine? lastOutputLine = null;

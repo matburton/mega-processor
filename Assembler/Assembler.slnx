@@ -1,7 +1,7 @@
 <Solution>
     <Folder Name="/Tests/">
         <Project Path="Core/Tests/Core.Unit/Assembler.Core.Tests.Unit.csproj" />
-        <Project Path="MegaProcessor/Tests/MegaProcessor.Unit/MegaProcessor.Core.Tests.Unit.csproj" />
+        <Project Path="MegaProcessor/Tests/MegaProcessor.Unit/Assembler.MegaProcessor.Tests.Unit.csproj" />
     </Folder>
     <Project Path="Core/Source/Assembler.Core.csproj" />
     <Project Path="MegaProcessor/Source/Assembler.MegaProcessor.csproj" />

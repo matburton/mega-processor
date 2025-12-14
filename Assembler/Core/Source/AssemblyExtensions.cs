@@ -1,5 +1,5 @@
 
-using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace Assembler.Core;
 
@@ -64,8 +64,29 @@ public static class AssemblyExtensions
                 (lines.OfType<string>().Select(s => new Line([], s)));
 
         [Pure]
-        public Assembly AddData(IEnumerable<byte> bytes) =>
+        public Assembly AddBytes(IEnumerable<byte> bytes) =>
             assembly.AddLines([new ([new BytesFragment(bytes)])]);
+
+        [Pure]
+        public Assembly AddBytes(Reference reference,
+                                 IEnumerable<byte> bytes,
+                                 [CallerArgumentExpression(nameof(reference))]
+                                    string? referenceProse = null)
+        {
+            return assembly.DefineReference(reference, referenceProse)
+                           .AddBytes(bytes);
+        }
+
+        [Pure]
+        public Assembly AddBytes(out Reference reference,
+                                 IEnumerable<byte> bytes,
+                                 [CallerArgumentExpression(nameof(reference))]
+                                    string? referenceProse = null)
+        {
+            reference = new ();
+
+            return assembly.AddBytes(reference, bytes, referenceProse);
+        }
 
         [Pure]
         public Assembly Append
@@ -79,6 +100,26 @@ public static class AssemblyExtensions
                 (null, appendProse, filePath, lineNumber);
 
             return append(assembly.AddBlockComment([comment]));
+        }
+
+        [Pure]
+        public Assembly Append
+            (Func<Reference, Assembly, Assembly> append,
+             [CallerArgumentExpression(nameof(append))]
+                string? appendProse = null,
+             [CallerFilePath] string? filePath = null,
+             [CallerLineNumber] int lineNumber = -1)
+        {
+            var end = new Reference();
+
+            var comment = Caller.ToComment
+                (null, appendProse, filePath, lineNumber);
+
+            var referenceProse =
+                Caller.LambdaFirstVariableName(appendProse) ?? nameof(end);
+
+            return append(end, assembly.AddBlockComment([comment]))
+                  .DefineReference(end, referenceProse);
         }
 
         [Pure]

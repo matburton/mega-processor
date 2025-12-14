@@ -1,8 +1,6 @@
 
 namespace Assembler.MegaProcessor;
 
-using Core.References;
-
 public sealed class Calculation(Func<IReferences, int> calculate)
 {
     public static implicit operator Calculation (int address) =>

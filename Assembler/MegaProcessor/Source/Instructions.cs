@@ -1,11 +1,5 @@
 
-using System.Runtime.CompilerServices;
-
 namespace Assembler.MegaProcessor;
-
-using Core;
-using Core.Exceptions;
-using Core.Fragments;
 
 using Exceptions;
 
@@ -246,9 +240,15 @@ public static class Instructions
                 assembly.IndirectCopy
                     (index, load: false, 3, Size.Word, data, bumpIndex);
 
-        private Assembly StackCopy
-            (bool load, int cycles, Size size, int offset, Register register)
+        private Assembly StackCopy(bool load,
+                                   int cycles,
+                                   Size size,
+                                   int offset,
+                                   Register register,
+                                   string? offsetProse)
         {
+            offsetProse ??= $"{offset}";
+
             if (offset is < 0 or > byte.MaxValue)
             {
                 throw new InvalidInstructionException
@@ -256,8 +256,10 @@ public static class Instructions
             }
 
             var comment = load switch
-                { true => $"ld.{size.Label} {register.Label}, (sp + {offset})",
-                  _    => $"st.{size.Label} (sp + {offset}), {register.Label})" };
+            {
+                true => $"ld.{size.Label} {register.Label}, (sp + {offsetProse})",
+                _    => $"st.{size.Label} (sp + {offsetProse}), {register.Label}"
+            };
 
             var op = 0xA0 | (load ? 0 : 0b1000) | size.Bits << 2 | register.Bits;
 
@@ -269,32 +271,60 @@ public static class Instructions
         /// <remarks>Sets:[N,Z]. Clears:[V,C]</remarks>
         ///
         [Pure]
-        public Assembly CopyByteFromStack(int offset, Register to) =>
-            assembly.StackCopy(load: true, 3, Size.Byte, offset, to);
+        public Assembly CopyByteFromStack
+            (int offset,
+             Register to,
+             [CallerArgumentExpression(nameof(offset))]
+                string? offsetProse = null)
+        {
+            return assembly.StackCopy
+                (load: true, 3, Size.Byte, offset, to, offsetProse);
+        }
 
         /// <summary>Cycles:4. Bytes:2</summary>
         ///
         /// <remarks>Sets:[N,Z]. Clears:[V,C]</remarks>
         ///
         [Pure]
-        public Assembly CopyWordFromStack(int offset, Register to) =>
-            assembly.StackCopy(load: true, 4, Size.Word, offset, to);
+        public Assembly CopyWordFromStack
+            (int offset,
+             Register to,
+             [CallerArgumentExpression(nameof(offset))]
+                string? offsetProse = null)
+        {
+            return assembly.StackCopy
+                (load: true, 4, Size.Word, offset, to, offsetProse);
+        }
 
         /// <summary>Cycles:3. Bytes:2</summary>
         ///
         /// <remarks>Sets:[N,Z]. Clears:[V,C]</remarks>
         ///
         [Pure]
-        public Assembly CopyByteToStack(int offset, Register register) =>
-            assembly.StackCopy(load: false, 3, Size.Byte, offset, register);
+        public Assembly CopyByteToStack
+            (int offset,
+             Register register,
+             [CallerArgumentExpression(nameof(offset))]
+                string? offsetProse = null)
+        {
+            return assembly.StackCopy
+                (load: false, 3, Size.Byte, offset, register, offsetProse);
+        }
 
         /// <summary>Cycles:4. Bytes:2</summary>
         ///
         /// <remarks>Sets:[N,Z]. Clears:[V,C]</remarks>
         ///
         [Pure]
-        public Assembly CopyWordToStack(int offset, Register register) =>
-            assembly.StackCopy(load: true, 4, Size.Word, offset, register);
+        public Assembly CopyWordToStack
+            (int offset,
+             Register register,
+             [CallerArgumentExpression(nameof(offset))]
+                string? offsetProse = null)
+        {
+            return assembly.StackCopy
+                (load: false, 4, Size.Word, offset, register, offsetProse);
+        }
 
         private Assembly AbsoluteCopy(bool load,
                                       int cycles,
@@ -518,6 +548,7 @@ public static class Instructions
         public Assembly SetByteValue
             (Register register,
              Calculation calculation,
+             bool force = false,
              [CallerArgumentExpression(nameof(calculation))]
                 string calculationProse = MissingProse)
         {
@@ -528,8 +559,13 @@ public static class Instructions
                  calculationProse,
                  new (r => calculation.Calculate(r) switch
             {
+                0 when !force =>
+                    throw new InvalidReferenceException
+                        ($"'{calculationProse}' is 0, so use {nameof(Clear)}"),
+
                 < 0 or > byte.MaxValue => throw new InvalidReferenceException
                     ($"'{calculationProse}' value not within 8-bit range"),
+
                 var v => v
             }));
         }
@@ -542,6 +578,7 @@ public static class Instructions
         public Assembly SetWordValue
             (Register register,
              Calculation calculation,
+             bool force = false,
              [CallerArgumentExpression(nameof(calculation))]
                 string calculationProse = MissingProse)
         {
@@ -556,8 +593,9 @@ public static class Instructions
                     throw new InvalidReferenceException
                         ($"'{calculationProse}' value not within 16-bit range"),
 
-                >= 0 and <= byte.MaxValue => throw new InvalidReferenceException
-                    ($"'{calculationProse}' can be a byte rather than a word"),
+                >= 0 and <= byte.MaxValue when !force =>
+                    throw new InvalidReferenceException
+                        ($"'{calculationProse}' can be a byte rather than a word"),
 
                 var v => v
             }));

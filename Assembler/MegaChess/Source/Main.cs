@@ -6,7 +6,11 @@ using static Register;
 
 internal sealed class Main
 {
-    public Main() => m_Calculate = new (m_Globals);
+    public Main()
+    {
+        m_Calculate = new (m_Globals);
+        m_DrawBoard = new (m_DrawPiece.Refs.Draw);
+    }
 
     public sealed record Globals(int CursorSquareIndex = 1,
                                  int SelectedSquareIndex = 1);
@@ -52,7 +56,7 @@ internal sealed class Main
 
     private readonly Calculate m_Calculate;
 
-    private readonly Draw.Board m_DrawBoard = new ();
+    private readonly Draw.Board m_DrawBoard;
 
     private readonly Draw.Piece m_DrawPiece = new ();
 }

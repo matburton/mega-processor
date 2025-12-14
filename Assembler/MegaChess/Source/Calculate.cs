@@ -15,7 +15,7 @@ internal sealed class Calculate(Reference m_MainGlobals)
     public References Refs { get; } = new ();
 
     public Assembly Build(Assembly a) => a
-        .AddBytes(out var pieceGameValues,
+        .AddBytes(m_PieceGameValues,
                   [Piece.GameValue.Empty,
                    Piece.GameValue.Pawn,
                    Piece.GameValue.King,
@@ -343,8 +343,64 @@ internal sealed class Calculate(Reference m_MainGlobals)
             .GoToIf(C.LessOrEqual, originCanMoveToTargetBlockStart)
             .GoTo(out var originCanMoveToTargetBlockEnd, forceAbsolute: true)
             .DefineReference(targetNotEmpty)
-            // TODO: Line 718
+            .SetByteValue(R3, Piece.Enum.OffBoard)
+            .Compare(R3, R1)
+            .GoToIf(C.Equal, out var nonEmptyTargetNotOpponent)
+            .SetByteValue(R3, Piece.Colour.Mask)
+            .AndTo(R3, R1)
+            .CopyByteFromStack(m_Stuff.Args.OpponentPieceColor, R2)
+            .Compare(R3, R2)
+            .GoToIf(C.NotEqual, nonEmptyTargetNotOpponent)
+            .CopyByteFromStack(m_Stuff.Locals.OriginPieceIsAPawn, R2)
+            .GoToIf(C.Equal, originCanMoveToTargetBlockStart)
+            .CopyByteFromStack(m_Stuff.Locals.MoveDirectionNumber, R2)
+            .SetByteValue(R3, 2)
+            .Compare(R2, R3)
+            .GoToIf(C.Greater, originCanMoveToTargetBlockStart)
+            .DefineReference(nonEmptyTargetNotOpponent)
+            .GoTo(originCanMoveToTargetBlockEnd, forceAbsolute: true)
             .DefineReference(originCanMoveToTargetBlockStart)
+            .SetByteValue(R2, Piece.Enum.Mask)
+            .AndTo(R2, R1)
+            .SetByteValue(R3, Piece.Enum.King)
+            .Compare(R2, R3)
+            .GoToIf(C.NotEqual, out var targetNotKing)
+            .CopyWordFromStack(m_Stuff.Locals.WinGameValue, R3)
+            .CopyWordTo(m_Globals + m_Vars.ReturnValue, R3)
+            .Append(Return)
+            .DefineReference(targetNotKing)
+            .CopyByteFromStack(m_Stuff.Locals.MovedOriginPieceValue, R3)
+            .CopyByteToStack(m_Stuff.Locals.TargetSquareValueAfterMoving, R3)
+            .CopyByteFromStack(m_Stuff.Locals.OriginPieceIsAPawn, R2)
+            .GoToIf(C.Equal, out var makeMoveLoopStart)
+            .SetWordValue(R2, m_BoardState, force: true)
+            .AddTo(R2, R0)
+            .CopyWordFromStack(m_Stuff.Locals.SinglePawnJump, R3)
+            .AddTo(R2, R3)
+            .CopyByteFromIndex(R2, R0)
+            .SetByteValue(R2, Piece.Enum.OffBoard)
+            .Compare(R0, R2)
+            .GoToIf(C.NotEqual, makeMoveLoopStart)
+            .SetByteValue(R2, Piece.Enum.Queen)
+            .CopyByteFromStack(m_Stuff.Locals.OriginPieceColor, R3)
+            .AndTo(R3, R2)
+            .CopyByteFromStack(m_Stuff.Locals.TargetSquareValueAfterMoving, R3)
+            .DefineReference(makeMoveLoopStart)
+            .SetByteValue(R1, 0, force: true)
+            .CopyByteFromStack(m_Stuff.Locals.TargetSquareValue, R3)
+            .GoToIf(C.Equal, out var targetIsEmpty)
+            .SetByteValue(R2, Piece.Enum.Mask)
+            .AndTo(R3, R2)
+            .SetWordValue(R2, m_PieceGameValues, force: true)
+            .AddTo(R2, R3)
+            .CopyByteFromIndex(R2, R1)
+            .CopyByteFromStack(m_Stuff.Args.Depth, R2)
+            .SubFrom(R1, R2)
+            .CopyByteFromStack(m_Stuff.Locals.ColorlessOriginPieceValue, R2)
+            .SubFrom(R1, R2)
+            .AddConst(R1, 1)
+            .DefineReference(targetIsEmpty)
+            // TODO: Line 796
             .DefineReference(originCanMoveToTargetBlockEnd)
             )
         // TODO
@@ -362,6 +418,13 @@ internal sealed class Calculate(Reference m_MainGlobals)
         .AddTo(R0, R1)
         .StackFromR0()
         .CopyWordFrom(m_Globals + m_Vars.ReturnValue, R0);
+
+    private Assembly Return(Assembly a) => a
+        .SetByteValue(R1, m_Stuff.Locals.TotalBytes)
+        .StackToR0()
+        .AddTo(R0, R1)
+        .StackFromR0()
+        .ReturnFromRoutine();
 
     private static class Bools
     {
@@ -504,6 +567,7 @@ internal sealed class Calculate(Reference m_MainGlobals)
     private readonly Reference m_Globals = new (),
                                m_BoardState = new (),
                                m_Calculate = new (),
+                               m_PieceGameValues = new (),
                                m_OriginPlayerIsInCheckNotModeIsZero = new (),
                                m_InitialMoveDirectionIndexes = new ();
 }

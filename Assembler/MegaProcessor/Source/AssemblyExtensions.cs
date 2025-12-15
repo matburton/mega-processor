@@ -154,9 +154,11 @@ public static class AssemblyExtensions
         public Assembly AddWords(out Reference reference,
                                  IEnumerable<Calculation> words,
                                  [CallerArgumentExpression(nameof(reference))]
-                                     string? referenceProse = null)
+                                     string? referenceProse = null,
+                                 [CallerFilePath] string? filePath = null,
+                                 [CallerLineNumber] int lineNumber = -1)
         {
-            reference = new ();
+            reference = new (filePath, lineNumber);
 
             return assembly.DefineReference(reference, referenceProse)
                            .AddWords(words);

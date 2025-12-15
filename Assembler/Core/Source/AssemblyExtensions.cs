@@ -11,9 +11,12 @@ public static class AssemblyExtensions
     extension(Assembly assembly)
     {
         [Pure]
-        public Assembly DeclareReference(out Reference reference)
+        public Assembly DeclareReference
+            (out Reference reference,
+             [CallerFilePath] string? filePath = null,
+             [CallerLineNumber] int lineNumber = -1)
         {
-            reference = new ();
+            reference = new (filePath, lineNumber);
 
             return assembly;
         }
@@ -48,7 +51,7 @@ public static class AssemblyExtensions
              [CallerFilePath] string? filePath = null,
              [CallerLineNumber] int lineNumber = -1)
         {
-            reference = new ();
+            reference = new (filePath, lineNumber);
 
             return assembly.DefineReference(reference,
                                             append ?? (a => a),
@@ -81,9 +84,11 @@ public static class AssemblyExtensions
         public Assembly AddBytes(out Reference reference,
                                  IEnumerable<byte> bytes,
                                  [CallerArgumentExpression(nameof(reference))]
-                                    string? referenceProse = null)
+                                    string? referenceProse = null,
+                                 [CallerFilePath] string? filePath = null,
+                                 [CallerLineNumber] int lineNumber = -1)
         {
-            reference = new ();
+            reference = new (filePath, lineNumber);
 
             return assembly.AddBytes(reference, bytes, referenceProse);
         }

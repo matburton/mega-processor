@@ -5,6 +5,9 @@ namespace Assembler.Core.Output;
 
 public static class OutputLineExtensions
 {
+    // TODO: Flush buffers upon an exception so the partial listing better shows
+    //       where we were
+
     extension (IEnumerable<OutputLine> outputLines)
     {
         public IEnumerable<OutputLine> CollapseRepeats()

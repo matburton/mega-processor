@@ -60,8 +60,6 @@ public sealed class Assembly
     [Pure]
     public IEnumerable<OutputLine> Assemble()
     {
-        // TODO: Compact repeated lines, or sets of lines. Buffer output for this?
-
         // TODO: Throw if there were unused defined references
 
         // TODO: When CalculateBytes fails give the current address and line comment?
@@ -122,11 +120,19 @@ public sealed class Assembly
         :
         IReferences
     {
-        public int GetAddress(Reference reference) =>
-            state.ReferenceAddresses.TryGetValue(reference, out var address)
-                ? address
-                : throw new InvalidReferenceException
-                                ("Reference has no defined address");
+        public int GetAddress(Reference reference)
+        {
+            if (state.ReferenceAddresses.TryGetValue(reference, out var address))
+            {
+                return address;
+            }
+
+            var message = reference.Label is not null
+                        ? $"Reference {reference.Label} has no defined address"
+                        : "Reference has no defined address";
+
+            throw new InvalidReferenceException(message);
+        }
 
         public int CurrentLineAddress { get; } = currentLineAddress;
     }

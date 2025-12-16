@@ -1,4 +1,7 @@
 <Solution>
+    <Folder Name="/Solution Items/">
+        <File Path="README.md" />
+    </Folder>
     <Folder Name="/Tests/">
         <Project Path="Core/Tests/Core.Unit/Assembler.Core.Tests.Unit.csproj" />
         <Project Path="MegaChess/Tests/MegaChess.Unit/Assembler.MegaChess.Tests.Unit.csproj" />

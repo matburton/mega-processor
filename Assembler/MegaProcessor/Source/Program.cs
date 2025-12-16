@@ -5,6 +5,8 @@ namespace Assembler.MegaProcessor;
 
 using Output;
 
+// TODO: Catch known exceptions and display them in a more terse way?
+
 public static class Program
 {
     public static int Main(IReadOnlyCollection<string> args,

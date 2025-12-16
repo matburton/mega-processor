@@ -179,6 +179,11 @@ public static class AssemblyExtensions
         {
             reference = new (filePath, lineNumber);
 
+            if (referenceProse.StartsWith("var "))
+            {
+                referenceProse = referenceProse[4 ..];
+            }
+
             return assembly.GoTo(reference, forceAbsolute, referenceProse);
         }
 
@@ -197,6 +202,11 @@ public static class AssemblyExtensions
              [CallerLineNumber] int lineNumber = -1)
         {
             reference = new (filePath, lineNumber);
+
+            if (referenceProse.StartsWith("var "))
+            {
+                referenceProse = referenceProse[4 ..];
+            }
 
             return assembly.GoToIf(condition, reference, referenceProse);
         }

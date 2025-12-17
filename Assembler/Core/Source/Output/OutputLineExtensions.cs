@@ -1,5 +1,6 @@
 
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 
 namespace Assembler.Core.Output;
 
@@ -9,65 +10,91 @@ public static class OutputLineExtensions
     {
         public IEnumerable<OutputLine> CollapseRepeats()
         {
-            var lineBuffer = new List<OutputLine>();
+            var state = new State();
 
-            PatternBuffer? patternBuffer = null;
+            ExceptionDispatchInfo? exceptionDispatchInfo = null;
 
-            foreach (var outputLine in outputLines)
+            using var enumerator =
+                CollapseRepeats(outputLines, state).GetEnumerator();
+
+            while (true)
             {
-                lineBuffer.Add(outputLine);
-
-                if (patternBuffer is not null)
+                try
                 {
-                    var matchesPattern = MatchesPattern(lineBuffer,
-                                                        patternBuffer.Pattern);
-                    if (matchesPattern is true)
-                    {
-                        lineBuffer.Clear();
-
-                        ++patternBuffer.RepeatCount;
-                    }
-
-                    if (matchesPattern is not false) continue;
-
-                    var collapsedOutputLines =
-                        ToCollapsedOutputLines(patternBuffer);
-
-                    foreach (var collapsedOutputLine in collapsedOutputLines)
-                    {
-                        yield return collapsedOutputLine;
-                    }
+                    if (!enumerator.MoveNext()) break;
+                }
+                catch (Exception exception)
+                {
+                    exceptionDispatchInfo =
+                        ExceptionDispatchInfo.Capture(exception);
                 }
 
-                patternBuffer = DetectPattern([..lineBuffer]);
+                yield return enumerator.Current;
+            }
 
-                if (patternBuffer is not null)
+            foreach (var outputLine in ToCollapsedOutputLines(state.PatternBuffer)
+                                      .Concat(state.LineBuffer))
+            {
+                yield return outputLine;
+            }
+
+            exceptionDispatchInfo?.Throw();
+        }
+    }
+
+    private static IEnumerable<OutputLine> CollapseRepeats
+        (IEnumerable<OutputLine> outputLines, State state)
+    {
+        foreach (var outputLine in outputLines)
+        {
+            state.LineBuffer.Add(outputLine);
+
+            if (state.PatternBuffer is not null)
+            {
+                var matchesPattern = MatchesPattern
+                    (state.LineBuffer, state.PatternBuffer.Pattern);
+
+                if (matchesPattern is true)
                 {
-                    var patternOutputLineCount =
-                        patternBuffer.Pattern.Count * patternBuffer.RepeatCount;
+                    state.LineBuffer.Clear();
 
-                    var nonPatternOutputLines =
-                        lineBuffer[.. ^patternOutputLineCount];
-
-                    foreach (var nonPatternOutputLine in nonPatternOutputLines)
-                    {
-                        yield return nonPatternOutputLine;
-                    }
-
-                    lineBuffer.Clear();
+                    ++state.PatternBuffer.RepeatCount;
                 }
-                else if (lineBuffer.Count >= 10)
-                {
-                    yield return lineBuffer[0];
 
-                    lineBuffer.RemoveAt(0);
+                if (matchesPattern is not false) continue;
+
+                var collapsedOutputLines =
+                    ToCollapsedOutputLines(state.PatternBuffer);
+
+                foreach (var collapsedOutputLine in collapsedOutputLines)
+                {
+                    yield return collapsedOutputLine;
                 }
             }
 
-            foreach (var outputLine in ToCollapsedOutputLines(patternBuffer)
-                                      .Concat(lineBuffer))
+            state.PatternBuffer = DetectPattern([..state.LineBuffer]);
+
+            if (state.PatternBuffer is not null)
             {
-                yield return outputLine;
+                var patternOutputLineCount =
+                      state.PatternBuffer.Pattern.Count
+                    * state.PatternBuffer.RepeatCount;
+
+                var nonPatternOutputLines =
+                    state.LineBuffer[.. ^patternOutputLineCount];
+
+                foreach (var nonPatternOutputLine in nonPatternOutputLines)
+                {
+                    yield return nonPatternOutputLine;
+                }
+
+                state.LineBuffer.Clear();
+            }
+            else if (state.LineBuffer.Count >= 10)
+            {
+                yield return state.LineBuffer[0];
+
+                state.LineBuffer.RemoveAt(0);
             }
         }
     }
@@ -148,6 +175,13 @@ public static class OutputLineExtensions
         {
             foreach (var item in items) yield return item;
         }
+    }
+
+    private sealed class State
+    {
+        public List<OutputLine> LineBuffer { get; } = new ();
+
+        public PatternBuffer? PatternBuffer { get; set; }
     }
 
     private sealed record PatternBuffer(IReadOnlyList<OutputLine> Pattern)

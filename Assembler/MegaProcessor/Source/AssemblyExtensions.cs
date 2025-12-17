@@ -15,7 +15,7 @@ public static class AssemblyExtensions
                                 [CallerFilePath] string? filePath = null,
                                 [CallerLineNumber] int lineNumber = -1)
         {
-            reference = new ();
+            reference = new (filePath, lineNumber);
 
             return assembly.Routine
                 (reference, append, referenceProse, filePath, lineNumber);
@@ -64,9 +64,11 @@ public static class AssemblyExtensions
              [CallerArgumentExpression(nameof(reference))]
                string? referenceProse = null,
              [CallerArgumentExpression(nameof(offsets))]
-               string? offsetsProse = null)
+               string? offsetsProse = null,
+             [CallerFilePath] string? filePath = null,
+             [CallerLineNumber] int lineNumber = -1)
         {
-            reference = new ();
+            reference = new (filePath, lineNumber);
 
             return assembly.DefineGlobals(reference,
                                           offsets,
@@ -152,9 +154,11 @@ public static class AssemblyExtensions
         public Assembly AddWords(out Reference reference,
                                  IEnumerable<Calculation> words,
                                  [CallerArgumentExpression(nameof(reference))]
-                                     string? referenceProse = null)
+                                     string? referenceProse = null,
+                                 [CallerFilePath] string? filePath = null,
+                                 [CallerLineNumber] int lineNumber = -1)
         {
-            reference = new ();
+            reference = new (filePath, lineNumber);
 
             return assembly.DefineReference(reference, referenceProse)
                            .AddWords(words);
@@ -169,9 +173,16 @@ public static class AssemblyExtensions
             (out Reference reference,
              bool forceAbsolute = false,
              [CallerArgumentExpression(nameof(reference))]
-                string referenceProse = "???")
+                string referenceProse = "???",
+             [CallerFilePath] string? filePath = null,
+             [CallerLineNumber] int lineNumber = -1)
         {
-            reference = new ();
+            reference = new (filePath, lineNumber);
+
+            if (referenceProse.StartsWith("var "))
+            {
+                referenceProse = referenceProse[4 ..];
+            }
 
             return assembly.GoTo(reference, forceAbsolute, referenceProse);
         }
@@ -186,9 +197,16 @@ public static class AssemblyExtensions
             (Condition condition,
              out Reference reference,
              [CallerArgumentExpression(nameof(reference))]
-                string referenceProse = "???")
+                string referenceProse = "???",
+             [CallerFilePath] string? filePath = null,
+             [CallerLineNumber] int lineNumber = -1)
         {
-            reference = new ();
+            reference = new (filePath, lineNumber);
+
+            if (referenceProse.StartsWith("var "))
+            {
+                referenceProse = referenceProse[4 ..];
+            }
 
             return assembly.GoToIf(condition, reference, referenceProse);
         }

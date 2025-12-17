@@ -28,7 +28,7 @@ registers can be used at any particular point. It's _expected_ you add
 
 The `.GoToIf` extension method allows you to add conditionally branching
 instructions. The conditions for this are available as instances in `Condition`.
-It's _recommended_ you ass `using C = Condition;` to each file for terser use.
+It's _recommended_ you add `using C = Condition;` to each file for terse use.
 
 ### Instruction Set
 
@@ -63,12 +63,12 @@ Defines the position of a routine in the binary by accepting or returning a
 instructions in this routine. A `.ReturnFromRoutine` instruction is
 automatically inserted at the end of lambda.
 
-In many some cases you might be able to choose whether to call or inline the
+In some cases you're able to choose whether to call or inline the
 instructions in a routine by instead using an overload of `.Append`.
 
 ### `Loop`
 
-Much like `.Append` but automatically defines a `Rereference` instance _before_
+Much like `.Append` but automatically defines a `Reference` instance _before_
 the instructions expressed by your nominated method or lambda. You can use this
 with `.Append` create sections which can branch back to the start or end of the
 section at any point.
@@ -96,14 +96,14 @@ public static class SomeModule
 
 ### `AddWords`
 
-It's common to include blocks of static data in your binary, such a pre-computed
+It's common to include blocks of static data in your binary, such as pre-computed
 lookup tables or bitmaps to copy to the display RAM. This defines a `Reference`
 instance at the current position.
 
 ### `ToIntelHex`
 
 An extension over a stream of `OutputLine`s as returned by `Assembly.Assemble`.
-This returns a stream of string which when separated by new lines and saved
+This returns a stream of strings which when separated by new lines and saved
 to a file can be loaded in to the official MegaProcessor simulator or in to the
 MegaProcessor itself.
 

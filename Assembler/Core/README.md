@@ -15,7 +15,7 @@ bytes, and comments. Unknown bytes are computed once `.Assemble` is called.
 
 ### `Reference`
 
-Acts much like a label in traditional assembly, but it lexically scoped within
+Acts much like a label in a traditional assembler, but is lexically scoped within
 this program. Can be created with `new` or with `.DeclareReference` or inline
 with some extension methods. You must call `.DefineReference`, or an extension
 that makes that call, once for each reference you use.

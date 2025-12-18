@@ -30,11 +30,11 @@ public static class Program
                                  Console.WindowHeight - 1,
                                  enableAnsiColours),
 
-            _  => ["Builds a chess binary for the MegaProcessor",
-                   "  -l, --listing      Write a debugging aid to stdout",
-                   "  -d, --debug <addr> Write listing around the"
-                   +                   " given address in hex to stdout",
-                   "  -h, --hex          Write Intel hex to stdout"]
+            _ => ["Builds a chess binary for the MegaProcessor",
+                  "  -l, --listing      Write a debugging aid to stdout",
+                  "  -d, --debug <addr> Write listing around the"
+                  +                   " given address in hex to stdout",
+                  "  -h, --hex          Write Intel hex to stdout"]
         };
 
         foreach (var line in lines) Console.WriteLine(line);

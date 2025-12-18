@@ -60,9 +60,9 @@ public sealed class Assembly
     [Pure]
     public IEnumerable<OutputLine> Assemble()
     {
-        // TODO: Throw if there were unused defined references
-
         // TODO: When CalculateBytes fails give the current address and line comment?
+
+        var usedReferences = new HashSet<Reference>();
 
         var currentAddress = 0;
 
@@ -76,7 +76,9 @@ public sealed class Assembly
 
                 // ReSharper disable once AccessToModifiedClosure
                 ReferenceFragment r =>
-                    r.CalculateBytes(new References(m_State, currentAddress)),
+                    r.CalculateBytes(new References(m_State,
+                                                    currentAddress,
+                                                    r => usedReferences.Add(r))),
 
                 _ => throw new UnreachableException
                         ($"Unknown fragment type {f.GetType()}")
@@ -94,6 +96,16 @@ public sealed class Assembly
 
             lastOutputLine = outputLine;
         }
+
+        var unusedReferences =
+            m_State.ReferenceAddresses.Keys.Except(usedReferences).ToArray();
+
+        if (unusedReferences is not [])
+        {
+            throw new InvalidReferenceException
+                ($"{unusedReferences.Length} unused defined references: "
+                 + string.Join(", ", unusedReferences.Select(r => r.Label)));
+        }
     }
 
     /// <exception cref="Exceptions.InvalidReferenceException" />
@@ -101,7 +113,7 @@ public sealed class Assembly
     [Pure]
     public IEnumerable<OutputLine> Assemble(out IReferences references)
     {
-        references = new References(m_State, m_State.TotalBytes);
+        references = new References(m_State, m_State.TotalBytes, _ => {});
 
         return Assemble();
     }
@@ -116,7 +128,8 @@ public sealed class Assembly
          int TotalBytes,
          IReadOnlyDictionary<Reference, int> ReferenceAddresses);
 
-    private sealed class References(State state, int currentLineAddress)
+    private sealed class References
+        (State state, int currentLineAddress, Action<Reference> usedReference)
         :
         IReferences
     {
@@ -124,6 +137,8 @@ public sealed class Assembly
         {
             if (state.ReferenceAddresses.TryGetValue(reference, out var address))
             {
+                usedReference(reference);
+
                 return address;
             }
 

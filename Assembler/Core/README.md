@@ -1,5 +1,5 @@
 
-# Assembler.Core
+# [Assembler.Core](Source)
 
 The fundamental building blocks for building a binary with inline comments.
 

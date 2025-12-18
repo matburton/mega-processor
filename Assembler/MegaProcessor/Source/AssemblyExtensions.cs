@@ -42,18 +42,23 @@ public static class AssemblyExtensions
         [Pure]
         public Assembly Loop
             (Func<Reference, Assembly, Assembly> append,
+             [CallerArgumentExpression(nameof(append))]
+                string? appendProse = null,
              [CallerFilePath] string? filePath = null,
              [CallerLineNumber] int lineNumber = -1)
         {
             var loop = new Reference();
 
+            var referenceProse =
+                Caller.LambdaFirstVariableName(appendProse) ?? nameof(loop);
+
             var comment = Caller.ToComment
-                (null, null, filePath, lineNumber, "loop");
+                (referenceProse, null, filePath, lineNumber, "loop");
 
             return assembly.AddBlockComment([comment])
                            .DefineReference(loop, null)
                            .Append(a => append(loop, a), null, null, -1)
-                           .AddBlockComment(["end loop"]);
+                           .AddBlockComment([$"end {referenceProse} loop"]);
         }
 
         [Pure]

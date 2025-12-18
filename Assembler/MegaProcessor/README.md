@@ -1,5 +1,5 @@
 
-# Assembler.MegaProcessor
+# [Assembler.MegaProcessor](Source)
 
 Provides extensions over the architecture agnostic `Assembler.Core` to model
 the MegaProcessor's instruction set as a domain specific language as well as
@@ -124,6 +124,5 @@ Your entry assembly can hence have a `Program.cs` which contains only:
 ```csharp
 return Assembler.MegaProcessor.Program.Main(args, BuildMyStuff);
 ```
-Where `BuildMyStuff` is something which takes an empty `Assembly` instance and
-returns an `Assembly` instance populated, such that `.Assemble` will return your
-binary.
+Where `BuildMyStuff` is something which returns an `Assembly` instance populated,
+such that `.Assemble` will return your binary.

@@ -1,4 +1,5 @@
 <Solution>
+    <Project Path="Example/Source/Assembler.Example.csproj" />
     <Folder Name="/Documentation/">
         <File Path="README.md" />
     </Folder>
@@ -7,7 +8,10 @@
     </Folder>
     <Folder Name="/Documentation/MegaProcessor/">
         <File Path="MegaProcessor/README.md" />
-    </Folder>    
+    </Folder>
+    <Folder Name="/Documentation/Example/">
+        <File Path="Example/README.md" />
+    </Folder>
     <Folder Name="/Tests/">
         <Project Path="Core/Tests/Core.Unit/Assembler.Core.Tests.Unit.csproj" />
         <Project Path="MegaProcessor/Tests/MegaProcessor.Unit/Assembler.MegaProcessor.Tests.Unit.csproj" />

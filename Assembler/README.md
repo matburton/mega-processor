@@ -20,3 +20,8 @@ You're also encouraged to create your own extension methods over these
 extension methods if the binary you're assembling has reoccurring patterns.
 
 [Learn more](MegaProcessor/README.md)
+
+# [Assembler.Example](Example/Source/Snail.cs)
+
+This is a reproduction of `snail.asm`, an example provided with the
+[official MegaProcessor assembler](https://www.megaprocessor.com/programming.html).
